@@ -1,0 +1,45 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(cuid())
+  email      String      @unique
+  password   String
+  name       String?
+  createdAt  DateTime    @default(now())
+  savedItems SavedItem[]
+  highlights Highlight[]
+}
+
+model SavedItem {
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type             String      @default("ARTICLE")
+  sourceUrl        String?
+  title            String
+  status           String      @default("UNREAD")
+  estimatedMinutes Int?
+  plainText        String?
+  createdAt        DateTime    @default(now())
+  highlights       Highlight[]
+}
+
+model Highlight {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedItemId  String
+  savedItem    SavedItem @relation(fields: [savedItemId], references: [id], onDelete: Cascade)
+  selectedText String
+  color        String    @default("yellow")
+  note         String?
+  createdAt    DateTime  @default(now())
+}
