@@ -48,5 +48,5 @@ ENV PORT=3000
 # Bind Next.js to all interfaces — see HOSTNAME comment in the simple template above.
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
 CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --url \"$DATABASE_URL\" && echo 'DB schema initialized' && HOSTNAME=0.0.0.0 exec node server.js"]
