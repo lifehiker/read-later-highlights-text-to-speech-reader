@@ -22,8 +22,8 @@ RUN mkdir -p /app/public
 RUN npm run build
 
 FROM node:20-slim AS runner
-# Install OpenSSL for Prisma schema engine at runtime
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# Install OpenSSL for Prisma schema engine at runtime; curl for lightweight HEALTHCHECK
+RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:/data/app.db"
@@ -48,5 +48,5 @@ ENV PORT=3000
 # Bind Next.js to all interfaces — see HOSTNAME comment in the simple template above.
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
+  CMD curl -sf http://127.0.0.1:3000/api/health
 CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --url \"$DATABASE_URL\" && echo 'DB schema initialized' && HOSTNAME=0.0.0.0 exec node server.js"]
