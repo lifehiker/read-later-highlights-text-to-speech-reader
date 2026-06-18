@@ -47,6 +47,6 @@ EXPOSE 3000
 ENV PORT=3000
 # Bind Next.js to all interfaces — see HOSTNAME comment in the simple template above.
 ENV HOSTNAME=0.0.0.0
-HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
   CMD curl -sf http://127.0.0.1:3000/api/health
 CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --url \"$DATABASE_URL\" && echo 'DB schema initialized' && HOSTNAME=0.0.0.0 exec node server.js"]
