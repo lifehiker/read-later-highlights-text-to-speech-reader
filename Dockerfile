@@ -5,19 +5,22 @@ COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts
 
 FROM node:20-slim AS builder
-# Install OpenSSL for Prisma schema engine (debian-openssl-3.0.x target)
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# OpenSSL for Prisma; python3/make/g++ to compile the better-sqlite3 native
+# addon when no prebuilt binary is available for this image.
+RUN apt-get update -y && apt-get install -y openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV DATABASE_URL="file:/tmp/build.db"
 ENV AUTH_SECRET="build-time-placeholder-secret"
 ENV NEXT_PUBLIC_APP_URL="https://localhost:3000"
-# better-sqlite3 is a native module but `deps` installed with --ignore-scripts,
-# so its prebuilt binary was never fetched. Rebuild it here (prebuild-install
-# downloads the prebuilt node-20 linux binary; no compiler needed). The Prisma 7
-# better-sqlite3 driver adapter requires this binary at runtime.
-RUN npm rebuild better-sqlite3
+# `deps` installed with --ignore-scripts, so the better-sqlite3 native binary
+# was never built. Rebuild every native module here (this also covers the copy
+# nested under @prisma/adapter-better-sqlite3). prebuild-install fetches a
+# prebuilt binary when available, otherwise node-gyp compiles from source using
+# the toolchain installed above. The Prisma 7 better-sqlite3 driver adapter
+# requires this binary at runtime.
+RUN npm rebuild
 # Generate Prisma client now that schema.prisma is available
 RUN npx prisma generate
 # Some app builds may not produce a public/ dir. Ensure it exists so the
