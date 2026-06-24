@@ -13,6 +13,11 @@ COPY . .
 ENV DATABASE_URL="file:/tmp/build.db"
 ENV AUTH_SECRET="build-time-placeholder-secret"
 ENV NEXT_PUBLIC_APP_URL="https://localhost:3000"
+# better-sqlite3 is a native module but `deps` installed with --ignore-scripts,
+# so its prebuilt binary was never fetched. Rebuild it here (prebuild-install
+# downloads the prebuilt node-20 linux binary; no compiler needed). The Prisma 7
+# better-sqlite3 driver adapter requires this binary at runtime.
+RUN npm rebuild better-sqlite3
 # Generate Prisma client now that schema.prisma is available
 RUN npx prisma generate
 # Some app builds may not produce a public/ dir. Ensure it exists so the
