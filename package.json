@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth/core": "^0.37.2",
+    "@auth/core": "^0.41.3",
     "@prisma/adapter-better-sqlite3": "^7.0.0",
     "@prisma/client": "^7.0.0",
     "bcryptjs": "^2.4.3",
