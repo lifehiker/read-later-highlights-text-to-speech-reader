@@ -35,7 +35,7 @@ RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/
 WORKDIR /app
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:/data/app.db"
-ENV AUTH_SECRET="forge-app-default-secret-override-in-production"
+# Private authentication secrets are supplied by the deployment environment.
 # Auth.js / NextAuth v5 refuses to serve when behind a proxy unless this is set
 # (errors.authjs.dev#untrustedhost). Coolify is always proxied. Without it,
 # every request to an auth-using app returns 502.
@@ -57,4 +57,4 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=5 \
   CMD curl -sf http://127.0.0.1:3000/api/health
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --url \"$DATABASE_URL\" && echo 'DB schema initialized'; HOSTNAME=0.0.0.0 exec node server.js"]
+CMD ["sh", "-c", "test -n \"$AUTH_SECRET\" && test -n \"$NEXTAUTH_SECRET\" || { echo \"Private authentication secrets are required\" >&2; exit 1; }; node node_modules/prisma/build/index.js db push --url \"$DATABASE_URL\" && echo 'DB schema initialized'; HOSTNAME=0.0.0.0 exec node server.js"]
